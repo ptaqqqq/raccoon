@@ -1,37 +1,38 @@
-<script>
+<script lang="ts">
   import vsSource from '$lib/assets/shaders/mandelbrot.vert?raw';
   import fsSource from '$lib/assets/shaders/mandelbrot.frag?raw';
 
-  let canvas;
-  let gl, program, vao;
-  let uResolution, uCenter, uZoom;
+  let canvas: HTMLCanvasElement;
+  let gl: WebGL2RenderingContext, program: WebGLProgram, vao: WebGLVertexArrayObject;
+  let uResolution: WebGLUniformLocation, uCenter: WebGLUniformLocation, uZoom: WebGLUniformLocation;
 
   let center = $state([0.2979207, 0.02111325]);
   let zoom = $state(1.0);
 
-  function createShader(gl, type, src) {
+  function createShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader {
     const sh = gl.createShader(type);
+    if (!sh) throw new Error('Failed to create shader');
     gl.shaderSource(sh, src);
     gl.compileShader(sh);
     if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-      throw new Error(gl.getShaderInfoLog(sh));
+      throw new Error('error compiling shader');
     }
     return sh;
   }
 
-  function createProgram(gl, vs, fs) {
+  function createProgram(gl: WebGL2RenderingContext, vs: string, fs: string): WebGLProgram {
     const p = gl.createProgram();
     gl.attachShader(p, createShader(gl, gl.VERTEX_SHADER, vs));
     gl.attachShader(p, createShader(gl, gl.FRAGMENT_SHADER, fs));
     gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-      throw new Error(gl.getProgramInfoLog(p));
+      throw new Error('error linking program');
     }
     return p;
   }
 
   function initGL() {
-    gl = canvas.getContext('webgl2');
+    gl = canvas.getContext('webgl2')!;
     if (!gl) throw new Error('WebGL2 required');
 
     const quad = new Float32Array([
@@ -47,9 +48,10 @@
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
     program = createProgram(gl, vsSource, fsSource);
-    uResolution = gl.getUniformLocation(program, 'uResolution');
-    uCenter     = gl.getUniformLocation(program, 'uCenter');
-    uZoom       = gl.getUniformLocation(program, 'uZoom');
+    uResolution = gl.getUniformLocation(program, 'uResolution')!;
+    uCenter     = gl.getUniformLocation(program, 'uCenter')!;
+    uZoom       = gl.getUniformLocation(program, 'uZoom')!;
+
   }
 
   function render() {
