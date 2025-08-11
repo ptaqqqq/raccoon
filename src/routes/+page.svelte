@@ -87,10 +87,10 @@
     gl.uniform1f(uSaturation, saturation);
     gl.uniform1f(uHueShift, performance.now() % 3000.0/ 3000.0);
     const tSec = (performance.now() - t0) / 1000;
-    gl.uniform1f(uTime, 0);
+    gl.uniform1f(uTime, tSec);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(render);
-    zoom *= 1.009
+    zoom *= 1.0;
   }
 
   $effect(() => {
