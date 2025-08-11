@@ -1,14 +1,17 @@
 <script lang="ts">
   import vsSource from '$lib/assets/shaders/mandelbrot.vert?raw';
   import fsSource from '$lib/assets/shaders/mandelbrot.frag?raw';
-    import { onMount } from 'svelte';
+  import { onMount } from 'svelte';
 
   let canvas: HTMLCanvasElement;
   let gl: WebGL2RenderingContext, program: WebGLProgram, vao: WebGLVertexArrayObject;
-  let uResolution: WebGLUniformLocation, uCenter: WebGLUniformLocation, uZoom: WebGLUniformLocation;
+  let uResolution: WebGLUniformLocation, uCenter: WebGLUniformLocation, uZoom: WebGLUniformLocation, uHueShift: WebGLUniformLocation, uSaturation: WebGLUniformLocation, uTime: WebGLUniformLocation;
 
-  let center = $state([0.2979207, 0.02111325]);
-  let zoom = $state(1.0);
+  let center = $state([0.298, 0.02121325]); // find better center coords
+  // let center = $state([0.0, 0.0]);
+  let intgrlScroll = $state(0.0);
+  let zoom = $derived(Math.exp(intgrlScroll));
+  let saturation = $state(0.5);
 
   function createShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader {
     const sh = gl.createShader(type);
@@ -52,9 +55,12 @@
     uResolution = gl.getUniformLocation(program, 'uResolution')!;
     uCenter     = gl.getUniformLocation(program, 'uCenter')!;
     uZoom       = gl.getUniformLocation(program, 'uZoom')!;
-
+    uHueShift       = gl.getUniformLocation(program, 'uHueShift')!;
+    uSaturation = gl.getUniformLocation(program, 'uSaturation')!;
+    uTime       = gl.getUniformLocation(program, 'uTime')!;
   }
 
+  let t0 = 0; // ms
   function render() {
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.useProgram(program);
@@ -62,13 +68,19 @@
     gl.uniform2f(uResolution, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.uniform2f(uCenter, center[0], center[1]);
     gl.uniform1f(uZoom, zoom);
+    gl.uniform1f(uSaturation, saturation);
+    gl.uniform1f(uHueShift, performance.now() % 3000.0/ 3000.0);
+    const tSec = (performance.now() - t0) / 1000;
+    gl.uniform1f(uTime, tSec);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(render);
+    zoom *= 1.009
   }
 
   $effect(() => {
     if (!canvas) return;
-    initGL();
+  initGL();
+  t0 = performance.now();
     requestAnimationFrame(render);
 
     // ---------- DPR-aware resize ----------
@@ -87,10 +99,65 @@
     window.addEventListener('resize', onResize);
     resize();
   });
+
+
+  function handleWheel(e: WheelEvent) {
+    intgrlScroll -= 0.0015 * e.deltaY;
+  }
+
+  onMount(() => {
+		window.addEventListener('wheel', handleWheel, { passive: true });
+		return () => {
+			window.removeEventListener('wheel', handleWheel);
+		};
+	});
+
+  // the vector you want to accumulate into:
+  let v = $state<[number, number]>([0, 0]);
+
+  let dragging = false;
+  let lastX = 0, lastY = 0;
+
+  // pixels → your units (1 = raw pixels)
+  let scaleX = 1;
+  let scaleY = 1;
+
+  function down(e: PointerEvent) {
+    dragging = true;
+    canvas.setPointerCapture(e.pointerId); // keep moves on this element
+    lastX = e.clientX;
+    lastY = e.clientY;
+  }
+
+  function move(e: PointerEvent) {
+    if (!dragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+
+    const r = canvas.getBoundingClientRect();
+    const sx = 1 / r.width;
+    const sy = -1 / r.height; // flip y to typical math/webgl coords
+    const invZoom = 1.0 / zoom;
+
+    v = [v[0] - dx * sx * invZoom, v[1] - dy * sy * invZoom];
+    center = v;
+  }
+
+  function up(e: PointerEvent) {
+    dragging = false;
+    canvas.releasePointerCapture?.(e.pointerId);
+  }
 </script>
 
 <!-- svelte-ignore element_invalid_self_closing_tag -->
-<canvas id="shader-canvas" bind:this={canvas} />
+<canvas id="shader-canvas" bind:this={canvas} 
+  onpointerdown={down}
+  onpointermove={move}
+  onpointerup={up}
+  onpointercancel={up}
+  style="touch-action:none; user-select:none;"
+/>
 
 <style>
   #shader-canvas {
