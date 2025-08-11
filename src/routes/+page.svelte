@@ -14,6 +14,21 @@
   let zoom = $derived(Math.exp(intgrlScroll));
   let saturation = $state(1.0);
 
+  // --- Minimal audio autostart (no controls) ---
+  let audio: HTMLAudioElement | null = null;
+  let audioStarted = false;
+  
+
+  function ensureAudio() {
+    if (audioStarted) return;
+    if (!audio) audio = new Audio();
+    audio.src = "$lib/assets/fractal_entry.mp3";
+    audio.loop = true; // optional; remove if not desired
+    audio.play().then(() => { audioStarted = true; }).catch(() => {
+      // Autoplay blocked until gesture; we'll retry on next interaction
+    });
+  }
+
   function createShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader {
     const sh = gl.createShader(type);
     if (!sh) throw new Error('Failed to create shader');
@@ -103,6 +118,7 @@
 
 
   function handleWheel(e: WheelEvent) {
+  ensureAudio();
     intgrlScroll -= 0.0015 * e.deltaY;
   }
 
@@ -124,6 +140,7 @@
   let scaleY = 1;
 
   function down(e: PointerEvent) {
+  ensureAudio();
     dragging = true;
     canvas.setPointerCapture(e.pointerId); // keep moves on this element
     lastX = e.clientX;
