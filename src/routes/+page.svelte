@@ -7,7 +7,7 @@
   let gl: WebGL2RenderingContext, program: WebGLProgram, vao: WebGLVertexArrayObject;
   let uResolution: WebGLUniformLocation, uCenter: WebGLUniformLocation, uZoom: WebGLUniformLocation, uHueShift: WebGLUniformLocation, uSaturation: WebGLUniformLocation, uTime: WebGLUniformLocation;
 
-  let center = $state([0.2979207, 0.02111325]);
+  let center = $state([0.2979207, 0.02111322]);
   // let center = $state([0.298, 0.02121325]); // find better center coords
   // let center = $state([0.0, 0.0]);
   let intgrlScroll = $state(0.0);
@@ -87,7 +87,7 @@
     gl.uniform1f(uSaturation, saturation);
     gl.uniform1f(uHueShift, performance.now() % 3000.0/ 3000.0);
     const tSec = (performance.now() - t0) / 1000;
-    gl.uniform1f(uTime, tSec);
+    gl.uniform1f(uTime, 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     requestAnimationFrame(render);
     zoom *= 1.009
