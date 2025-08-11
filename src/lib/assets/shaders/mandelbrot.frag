@@ -10,7 +10,7 @@ uniform float uTime;         // seconds since start (for intro grayscale)
 
 out vec4 outColor;
 
-const int   ITERATIONS = 1024;
+const int   ITERATIONS = 512;
 const float BAILOUT2   = 4.0;
 
 vec3 rgb2hsv(vec3 c) {
