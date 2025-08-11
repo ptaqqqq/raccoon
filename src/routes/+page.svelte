@@ -11,7 +11,7 @@
   // let center = $state([0.0, 0.0]);
   let intgrlScroll = $state(0.0);
   let zoom = $derived(Math.exp(intgrlScroll));
-  let saturation = $state(0.5);
+  let saturation = $state(1.0);
 
   function createShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader {
     const sh = gl.createShader(type);

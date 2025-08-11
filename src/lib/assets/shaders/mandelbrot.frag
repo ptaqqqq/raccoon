@@ -120,8 +120,8 @@ void main(){
         float mu = escIter + 1.0 - log2(max(log(max(lastMag, 1e-38)), 1e-38)); // prob the color
         float t  = clamp(mu / float(ITERATIONS), 0.0, 1.0);
         vec3 col = iqPalette(t);
-        // Intro: grayscale for the first ~1s, then smoothly blend to color
-        float k = smoothstep(0.8, 1.0, uTime); // 0->1 around 0.8..1.0s
+    // Intro: grayscale for the first ~5s, then smoothly blend to color
+    float k = smoothstep(4.0, 5.0, uTime); // 0->1 around 4..5s
         float gray = dot(col, vec3(0.299, 0.587, 0.114));
         vec3 finalCol = mix(vec3(gray), col, k);
         outColor = vec4(finalCol, 1.0);
