@@ -1,6 +1,7 @@
 <script>
   import vsSource from '$lib/assets/shaders/mandelbrot.vert?raw';
   import fsSource from '$lib/assets/shaders/mandelbrot.frag?raw';
+    import { onMount } from 'svelte';
 
   let canvas;
   let gl, program, vao;
@@ -8,6 +9,7 @@
 
   let center = $state([0.2979207, 0.02111325]);
   let zoom = $state(1.0);
+
 
   function createShader(gl, type, src) {
     const sh = gl.createShader(type);
@@ -67,7 +69,33 @@
     if (!canvas) return;
     initGL();
     requestAnimationFrame(render);
+
+    // ---------- DPR-aware resize ----------
+    function resize() {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width  * dpr));
+      const h = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
+    }
+    const onResize = () => resize();
+    window.addEventListener('resize', onResize);
+    resize();
   });
 </script>
 
-<canvas bind:this={canvas} width="800" height="600" />
+<!-- svelte-ignore element_invalid_self_closing_tag -->
+<canvas id="shader-canvas" bind:this={canvas} />
+
+<style>
+  #shader-canvas {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+</style>
