@@ -7,7 +7,8 @@
   let gl: WebGL2RenderingContext, program: WebGLProgram, vao: WebGLVertexArrayObject;
   let uResolution: WebGLUniformLocation, uCenter: WebGLUniformLocation, uZoom: WebGLUniformLocation, uHueShift: WebGLUniformLocation, uSaturation: WebGLUniformLocation, uTime: WebGLUniformLocation;
 
-  let center = $state([0.298, 0.02121325]); // find better center coords
+  let center = $state([0.2979207, 0.02111325]);
+  // let center = $state([0.298, 0.02121325]); // find better center coords
   // let center = $state([0.0, 0.0]);
   let intgrlScroll = $state(0.0);
   let zoom = $derived(Math.exp(intgrlScroll));
